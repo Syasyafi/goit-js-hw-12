@@ -1,16 +1,6 @@
 import { createMurkup } from './js/render-functions.js';
 import { searchObject } from './js/pixabay-api.js';
 
-// Описаний у документації
-import iziToast from 'izitoast';
-// Додатковий імпорт стилів
-import 'izitoast/dist/css/iziToast.min.css';
-
-// Описаний у документації
-import simpleLightbox from 'simplelightbox';
-// Додатковий імпорт стилів
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
 const searchForm = document.querySelector('.search-form');
 const search = document.querySelector('input');
 const objectList = document.querySelector('.object-list');
