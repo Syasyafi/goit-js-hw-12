@@ -29,7 +29,7 @@ let page = 1;
 let pageLimit;
 let searchValue;
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
   event.preventDefault();
 
   if (!search.value) {
@@ -42,76 +42,75 @@ function handleSubmit(event) {
     });
   }
 
-  objectList.textContent = '';
-  loader.style.display = 'flex';
-  searchValue = event.currentTarget.elements.search.value.trim();
-  page = 1;
+  try {
+    objectList.textContent = '';
+    loader.style.display = 'flex';
+    searchValue = event.currentTarget.elements.search.value.trim();
+    page = 1;
 
-  searchObject(searchValue, page)
-    .then(data => {
-      if (!data.total) {
-        loader.style.display = 'none';
-        loadMoreBtn.style.display = 'none';
+    const data = await searchObject(searchValue, page);
 
-        return iziToast.info({
-          message: "Don't found",
-          closeOnClick: true,
-          position: 'topCenter',
-        });
-      }
-
-      updateMurkup(data.hits);
-      event.target.reset();
+    if (!data.total) {
       loader.style.display = 'none';
-      loadMoreBtn.style.display = 'block';
-      lastPage(data);
-    })
-    .catch(error => {
-      loader.style.display = 'none';
-      return iziToast.error({
-        message: `${error.message}`,
-        backgroundColor: 'red',
+      loadMoreBtn.style.display = 'none';
+      return iziToast.info({
+        message: "Don't found",
+        closeOnClick: true,
         position: 'topCenter',
       });
+    }
+
+    updateMurkup(data.hits);
+    event.target.reset();
+    loader.style.display = 'none';
+    loadMoreBtn.style.display = 'block';
+    lastPage(data);
+  } catch (error) {
+    loader.style.display = 'none';
+    return iziToast.error({
+      message: `${error.message}`,
+      backgroundColor: 'red',
+      position: 'topCenter',
     });
+  }
 }
 
 async function loadMore() {
   loader.style.display = 'flex';
   page = page + 1;
 
-  await searchObject(searchValue, page)
-    .then(data => {
-      updateMurkup(data.hits);
+  try {
+    const data = await searchObject(searchValue, page);
 
-      const liElement = document.querySelector('li');
-      const { height } = liElement.getBoundingClientRect();
-      scrollVertical(height * 2, 0);
+    updateMurkup(data.hits);
 
-      loader.style.display = 'none';
+    const liElement = document.querySelector('li');
+    const { height } = liElement.getBoundingClientRect();
+    scrollVertical(height * 2, 0);
 
-      pageLimit = Math.floor(data.totalHits / 15);
+    loader.style.display = 'none';
 
-      if (page >= pageLimit) {
-        lastPage(data);
-        iziToast.show({
-          titleColor: 'white',
-          message: `We're sorry, but you've reached the end of search results!`,
-          messageColor: 'black',
-          color: 'blue',
-          position: 'topCenter',
-          timeout: '5000',
-        });
-      }
-    })
-    .catch(error => {
-      loader.style.display = 'none';
-      return iziToast.error({
-        message: `${error.message}`,
-        backgroundColor: 'red',
+    pageLimit = Math.floor(data.totalHits / 15);
+
+    if (page >= pageLimit) {
+      lastPage(data);
+      iziToast.show({
+        titleColor: 'white',
+        message: `We're sorry, but you've reached the end of search results!`,
+        messageColor: 'black',
+        color: 'blue',
         position: 'topCenter',
+        timeout: '5000',
       });
+    }
+  } catch (error) {
+    loader.style.display = 'none';
+    return iziToast.error({
+      message: `${error.message}`,
+      backgroundColor: 'red',
+      position: 'topCenter',
     });
+  }
 }
 
 function updateMurkup(hits) {
